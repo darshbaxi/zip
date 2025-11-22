@@ -232,7 +232,7 @@ export function TopNavigation() {
 			)}
 
 			<nav
-				className="border-b border-[#AE16A7]/30 sticky top-0 z-50 backdrop-blur-md shadow-2xl relative overflow-hidden"
+				className="border-b border-[#AE16A7]/30 sticky top-0 z-50 backdrop-blur-md shadow-2xl relative"
 				style={{ backgroundColor: "#1D0225" }}
 			>
 				{/* Enhanced Background gradient overlay */}

@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
       urgency: urgencyLevel,
       client: userId,
       featured: featured || false,
-      status: 'draft',
+      status: 'open',
       milestones: defaultMilestones
     });
     
@@ -194,6 +194,7 @@ export async function GET(request: NextRequest) {
     // Calculate pagination
     const skip = (page - 1) * limit;
     // Fetch jobs
+    console.log("q=",query);
     const jobs = await Job.find(query)
       .populate('client', 'fullname avatar rating reviewCount verified')
       .sort({ featured: -1, createdAt: -1 })
@@ -203,6 +204,8 @@ export async function GET(request: NextRequest) {
     
     // Get total count for pagination
     const total = await Job.countDocuments(query);
+
+    console.log(jobs);
     
     return NextResponse.json({
       jobs,
