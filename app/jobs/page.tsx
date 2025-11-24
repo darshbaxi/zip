@@ -42,6 +42,7 @@ import { toast } from "sonner"
 import { useAuth } from "@/lib/auth-context"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useAccount, useWaitForTransactionReceipt, useWatchContractEvent, useWriteContract } from "wagmi"
+import { walletManager } from "@/lib/hedera-wallet"
 
 interface Job {
   _id: string
@@ -103,7 +104,7 @@ export default function JobsPage() {
       const { } = useWaitForTransactionReceipt({
         hash: txHash,
       });
-    const { isConnected } = useAccount()
+    const { isConnected ,address} = useAccount()
   const contractAddress = escrowContractDeployment.FreeLanceDAOEscrow.evmAddress;
   const contractAbi = escrowContractABI.abi;
 const HEDERA_TESTNET_CHAIN_ID = 296;
@@ -344,32 +345,34 @@ async function requestJob(jobId: number | string) {
         const params={
         jobId:selectedJob.jobId
       }
-        requestJob(params.jobId);
-      // const response = await fetch('/api/proposals', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Authorization': `Bearer ${token}`,
-      //     'Content-Type': 'application/json'
-      //   },
-      //   body: JSON.stringify({
-      //     jobId: selectedJob._id,
-      //     title: `Proposal for ${selectedJob.title}`,
-      //     description: proposalText,
-      //     budget: {
-      //       amount: parseFloat(proposalBudget),
-      //       currency: selectedJob.budget.currency
-      //     },
-      //     timeline: proposalTimeline || 'As discussed',
-      //     milestones: []
-      //   })
-      // })
+console.log("chker ... ",address )     
+      const response = await fetch('/api/proposals', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          jobId: selectedJob._id,
+          title: `Proposal for ${selectedJob.title}`,
+          description: proposalText,
+          budget: {
+            amount: parseFloat(proposalBudget),
+            currency: selectedJob.budget.currency
+          },
+          timeline: proposalTimeline || 'As discussed',
+          milestones: [],
+          providerAddress: address
+        })
+      })
 
-      // if (!response.ok) {
-      //   const errorData = await response.json()
-      //   throw new Error(errorData.message || 'Failed to submit proposal')
-      // }
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Failed to submit proposal')
+      }
+      requestJob(params.jobId);
 
-      // const data = await response.json()
+      const data = await response.json()
     
       toast.success("Proposal submitted successfully!")
       

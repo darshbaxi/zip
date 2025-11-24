@@ -39,11 +39,12 @@ export async function POST(request: NextRequest) {
       description,
       budget,
       timeline,
-      milestones
+      milestones,
+      providerAddress:walletAddress
     } = await request.json();
     
     // Validate required fields
-    if (!jobId || !title || !description || !budget || !timeline) {
+    if (!jobId || !title || !description || !budget || !timeline || !walletAddress) {
       return NextResponse.json(
         { message: 'Missing required fields' },
         { status: 400 }
@@ -99,7 +100,8 @@ export async function POST(request: NextRequest) {
       },
       timeline: timeline.trim(),
       milestones: milestones || [],
-      status: 'pending'
+      status: 'pending',
+      walletAddress: walletAddress.trim()
     });
     
     // Update job's proposals array
@@ -220,15 +222,21 @@ export async function GET(request: NextRequest) {
     // Get total count for pagination
     const total = await Proposal.countDocuments(query);
     
-    return NextResponse.json({
-      proposals,
-      pagination: {
-        page,
-        limit,
-        total,
-        pages: Math.ceil(total / limit)
-      }
-    });
+   return NextResponse.json({
+  proposals: proposals.map(p => ({
+    ...p,
+    job: {
+      ...p.job,
+      jobId: p.job?.jobId ?? null     // always return something
+    }
+  })),
+  pagination: {
+    page,
+    limit,
+    total,
+    pages: Math.ceil(total / limit)
+  }
+});
   } catch (error) {
     console.error('Get Proposals API Error:', error);
     return NextResponse.json(

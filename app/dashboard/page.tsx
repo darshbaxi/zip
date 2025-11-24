@@ -193,6 +193,7 @@ const { writeContract, data: txData, error: writeError, reset } = useWriteContra
           const proposalsResponse = await fetch('/api/proposals', { headers });
           if (!proposalsResponse.ok) throw new Error('Failed to fetch proposals');
           const proposalsData = await proposalsResponse.json();
+          console.log("final majdoori ",proposalsData.proposals)
           setProposals(proposalsData.proposals);
         }
       } catch (err) {
@@ -387,6 +388,27 @@ async function confirmFixedJob(jobId: ethers.BigNumberish) {
     setSelectedProposal(proposal);
     setShowViewProposal(true);
   };
+  async function approveProvider(jobId: number | string, providerAddress: string) {
+  if (!window.ethereum) throw new Error("Wallet not found");
+
+  const provider = new ethers.providers.Web3Provider(window.ethereum);
+  await provider.send("eth_requestAccounts", []);
+
+  const signer = provider.getSigner();
+  const contract = new ethers.Contract(
+    contractAddress,
+    contractAbi,
+    signer
+  );
+
+  const tx = await contract.approveProvider(
+    BigInt(jobId),
+    providerAddress,{ gasLimit: 300000 }
+  );
+
+  const receipt = await tx.wait();
+  return receipt;
+}
 
   const handleProposalAction = async (proposalId: string, action: 'accepted' | 'rejected') => {
     try {

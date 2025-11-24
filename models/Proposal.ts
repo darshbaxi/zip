@@ -20,6 +20,7 @@ export interface IProposal extends Document {
   respondedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
+  walletAddress: string;
 }
 
 const ProposalSchema = new Schema<IProposal>({
@@ -82,6 +83,11 @@ const ProposalSchema = new Schema<IProposal>({
     type: String,
     enum: ['pending', 'accepted', 'rejected', 'withdrawn'],
     default: 'pending',
+  },
+  walletAddress: {
+    type: String,
+    required: [true, 'Wallet address is required'],
+    trim: true,
   },
   submittedAt: {
     type: Date,
