@@ -207,7 +207,7 @@ export async function GET(request: NextRequest) {
     const proposals = await Proposal.find(query)
       .populate({
         path: 'job',
-        select: 'title budget duration category client',
+        select: 'jobId title budget duration category client',
         populate: {
           path: 'client',
           select: 'fullname avatar'

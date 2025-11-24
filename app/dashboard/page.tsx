@@ -97,6 +97,7 @@ interface Proposal {
   job: {
     _id: string;
     title: string;
+    jobId: string;
     client: {
       fullname: string;
       avatar?: string;
@@ -114,6 +115,7 @@ interface Proposal {
   status: string;
   submittedAt: string;
   timeline: string;
+  walletAddress: string;
   milestones: {
     name: string;
     amount: number;
@@ -410,8 +412,10 @@ async function confirmFixedJob(jobId: ethers.BigNumberish) {
   return receipt;
 }
 
-  const handleProposalAction = async (proposalId: string, action: 'accepted' | 'rejected') => {
+  const handleProposalAction = async (proposal: Proposal, action: 'accepted' | 'rejected') => {
     try {
+      const proposalId = proposal._id;
+      proposal
       const token = localStorage.getItem('freelancedao_token');
       if (!token) {
         toast.error('Please log in to manage proposals');
@@ -436,6 +440,8 @@ async function confirmFixedJob(jobId: ethers.BigNumberish) {
       
       if (action === 'accepted') {
         // Create contract automatically
+        console.log("2 majdoor... ",proposal.job.jobId,proposal.walletAddress)
+        approveProvider(proposal.job.jobId,proposal.walletAddress)
         const contractResponse = await fetch('/api/contracts', {
           method: 'POST',
           headers: {
@@ -950,13 +956,13 @@ async function confirmFixedJob(jobId: ethers.BigNumberish) {
                         {user?.role === 'client' && proposal.status === 'pending' && (
                           <div className="flex gap-2 pt-4 border-t">
                             <Button 
-                              onClick={() => handleProposalAction(proposal._id, 'accepted')}
+                              onClick={() => handleProposalAction(proposal, 'accepted')}
                               className="bg-green-500 hover:bg-green-600 text-white flex-1"
                             >
                               Accept Proposal
                             </Button>
                             <Button 
-                              onClick={() => handleProposalAction(proposal._id, 'rejected')}
+                              onClick={() => handleProposalAction(proposal, 'rejected')}
                               variant="outline" 
                               className="border-red-500 text-red-500 hover:bg-red-50 flex-1"
                             >
@@ -1052,13 +1058,13 @@ async function confirmFixedJob(jobId: ethers.BigNumberish) {
                         {proposal.status === 'pending' && (
                           <div className="flex gap-2 pt-4 border-t">
                             <Button 
-                              onClick={() => handleProposalAction(proposal._id, 'accepted')}
+                              onClick={() => handleProposalAction(proposal, 'accepted')}
                               className="bg-green-500 hover:bg-green-600 text-white flex-1"
                             >
                               Accept Proposal
                             </Button>
                             <Button 
-                              onClick={() => handleProposalAction(proposal._id, 'rejected')}
+                              onClick={() => handleProposalAction(proposal, 'rejected')}
                               variant="outline" 
                               className="border-red-500 text-red-500 hover:bg-red-50 flex-1"
                             >
