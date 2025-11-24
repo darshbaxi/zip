@@ -150,7 +150,7 @@ contract FreeLanceDAOEscrowPayment is Ownable, ReentrancyGuard {
         j.totalAmount = msg.value;
         j.releasedAmount = 0;
         j.createdAt = block.timestamp;
-        j.status = Status.OPEN;
+        j.status = Status.PENDING;
         j.funded = true;
         j.exists = true;
 

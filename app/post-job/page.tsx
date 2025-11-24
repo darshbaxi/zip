@@ -35,7 +35,9 @@ export default function PostJobPage() {
   const [isDraft, setIsDraft] = useState(false)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>("")
-
+const [savedtoWeb3, setSavedtoWeb3] = useState({
+  jobId:null,isSaved:false
+});
   //web3 part
   const { isConnected } = useAccount()
   const contractAddress = escrowContractDeployment.FreeLanceDAOEscrow.evmAddress;
@@ -55,15 +57,26 @@ export default function PostJobPage() {
     }
   }, [writeError])
 
+  useEffect(()=>{
+    if(savedtoWeb3.isSaved){
+      console.log("saving to backend",savedtoWeb3);
+      saveData((savedtoWeb3?.jobId) as unknown as number);
+    }
+  },[savedtoWeb3])
+  const saveData=async(jobId:number)=>{
+    await postJobToBackend(jobId);
+  }
+
   useWatchContractEvent({
     address: contractAddress as `0x${string}`,
     abi: contractAbi,
     eventName: "JobCreated",
     chainId: HEDERA_TESTNET_CHAIN_ID,
-    onLogs: (logs: any[]) => {
+    onLogs: async(logs: any[]) => {
       if (logs && logs.length > 0) {
         toast.success("Job posted successfully!");
-        console.log("job posted", logs)
+        setSavedtoWeb3({jobId:Number(logs[0].args.jobId) as any,isSaved:true});
+        console.log("job posted", logs[0].args.jobId)
         reset();
         setIsSubmitting(false);
       }
@@ -80,7 +93,7 @@ export default function PostJobPage() {
       enabled: typeof window !== 'undefined' && !!contractAddress
     }
   });
-const postJobToBackend = async () => {
+const postJobToBackend = async (jobId:number) => {
   try {
     // const token = localStorage.getItem("token"); // or however you store JWT
     const token = localStorage.getItem('freelancedao_token')
@@ -103,6 +116,7 @@ const postJobToBackend = async () => {
         featured: formData.featured || false,
         urgent: formData.urgent || false,
         useEscrow: formData.useEscrow || false,
+        jobId
       }),
     });
 
@@ -150,8 +164,8 @@ const postJobToBackend = async () => {
         args: [params],
       });
       
-      const backendJob = await postJobToBackend();
-      if (!backendJob) return;
+      // const backendJob = await postJobToBackend();
+      // if (!backendJob) return;
       
 
     } catch (err: any) {

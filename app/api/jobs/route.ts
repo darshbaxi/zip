@@ -43,6 +43,7 @@ export async function POST(request: NextRequest) {
       experienceLevel,
       featured,
       urgent,
+      jobId,
       useEscrow
     } = await request.json();
     
@@ -106,6 +107,7 @@ export async function POST(request: NextRequest) {
     ];
     
     // Create job
+    console.log("Creating job with ID:", jobId);
     const job = await Job.create({
       title: title.trim(),
       description: description.trim(),
@@ -116,6 +118,7 @@ export async function POST(request: NextRequest) {
         currency: 'HBAR',
         type: budgetType
       },
+      jobId: jobId,
       duration,
       urgency: urgencyLevel,
       client: userId,
@@ -452,3 +455,4 @@ export async function DELETE(request: NextRequest) {
     );
   }
 }
+

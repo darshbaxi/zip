@@ -10,6 +10,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { ethers } from 'ethers';
+import escrowContractDeployment from "@/hedera-deployments/hedera-escrow-testnet.json";
+import escrowContractABI from "@/hedera-frontend-abi/FreeLanceDAOEscrowPayment.json";
 import {
   Dialog,
   DialogContent,
@@ -45,6 +48,7 @@ import Link from "next/link"
 import { PaymentSystem } from "@/components/payment-system"
 import { useAuth } from "@/lib/auth-context"
 import { generateContractPDF } from "@/lib/pdf-generator"
+import { useWriteContract } from "wagmi"
 
 interface DashboardStats {
   totalEarnings?: number;
@@ -144,7 +148,9 @@ function DashboardContent() {
   const [updatingMilestone, setUpdatingMilestone] = useState<string | null>(null);
   const [contractId, setContractId] = useState<string | null>(null);
   const [approvingJob, setApprovingJob] = useState<string | null>(null);
-
+const { writeContract, data: txData, error: writeError, reset } = useWriteContract();
+  const contractAddress = escrowContractDeployment.FreeLanceDAOEscrow.evmAddress;
+  const contractAbi = escrowContractABI.abi;
   // Fetch dashboard data
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -269,14 +275,36 @@ function DashboardContent() {
       setCompletedJobsLoading(false);
     }
   };
+
+async function confirmFixedJob(jobId: ethers.BigNumberish) {
+  if (typeof window === "undefined" || !(window as any).ethereum)
+    throw new Error("Ethereum provider not found");
+
+  const provider = new ethers.providers.Web3Provider((window as any).ethereum);
+  await provider.send("eth_requestAccounts", []);
+  const signer = provider.getSigner();
+  const contract = new ethers.Contract(contractAddress, contractAbi, signer);
+
+  let gasLimit;
+  try {
+    const est = await contract.estimateGas.confirmFixedJob(jobId);
+    gasLimit = est.mul(120).div(100);
+  } catch {
+    gasLimit = ethers.BigNumber.from("300000");
+  }
+
+  const tx = await contract.confirmFixedJob(jobId, { gasLimit });
+  const receipt = await tx.wait();
+  return receipt;
+}
   
   // Handle job approval/rejection by client
   const handleJobApproval = async (jobId: string, approved: boolean) => {
     setApprovingJob(jobId);
-    
+    console.log("aviral mota")
     try {
       const token = localStorage.getItem('freelancedao_token');
-      const response = await fetch(`/api/jobs/${jobId}/approve`, {
+      const response :Response= await fetch(`/api/jobs/${jobId}/approve`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -284,11 +312,12 @@ function DashboardContent() {
         },
         body: JSON.stringify({ approved }),
       });
-      
+     
+
       if (!response.ok) throw new Error('Failed to update job status');
       
       toast.success(`Job ${approved ? 'approved' : 'rejected'} successfully!`);
-      
+      await confirmFixedJob(22)
       // Refresh completed jobs
       fetchCompletedJobs();
       
@@ -354,6 +383,7 @@ function DashboardContent() {
   };
 
   const handleViewProposal = (proposal: Proposal) => {
+    console.log("Viewing proposal:", proposal);
     setSelectedProposal(proposal);
     setShowViewProposal(true);
   };
@@ -431,9 +461,11 @@ function DashboardContent() {
           'Authorization': `Bearer ${token}`,
         }
       })
-      
+      console.log("1",token)
       if (response.ok) {
         const data = await response.json()
+      console.log("2",data)
+
         if (data.contracts && data.contracts.length > 0) {
           setContractId(data.contracts[0]._id)
         }

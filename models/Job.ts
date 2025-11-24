@@ -3,6 +3,7 @@ import mongoose, { Document, Schema } from 'mongoose';
 export interface IJob extends Document {
   title: string;
   description: string;
+  jobId: number;
   budget: {
     amount: number;
     currency: string;
@@ -43,6 +44,11 @@ const JobSchema = new Schema<IJob>({
     required: [true, 'Job description is required'],
     trim: true,
     maxlength: 5000,
+  },
+  jobId:{
+    type: Number,
+    required: true,
+    unique: true,
   },
   budget: {
     amount: {

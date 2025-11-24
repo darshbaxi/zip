@@ -7,6 +7,10 @@ import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import escrowContractABI from "@/hedera-frontend-abi/FreeLanceDAOEscrowPayment.json";
+import escrowContractDeployment from "@/hedera-deployments/hedera-escrow-testnet.json";
+import { ethers } from "ethers";
+
 import {
   Dialog,
   DialogContent,
@@ -37,11 +41,13 @@ import { useState, useEffect } from "react"
 import { toast } from "sonner"
 import { useAuth } from "@/lib/auth-context"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useAccount, useWaitForTransactionReceipt, useWatchContractEvent, useWriteContract } from "wagmi"
 
 interface Job {
   _id: string
   title: string
   description: string
+  jobId:number
   budget: {
     amount: number
     currency: string
@@ -92,6 +98,15 @@ export default function JobsPage() {
   const [proposalTimeline, setProposalTimeline] = useState("")
   const [isSubmittingProposal, setIsSubmittingProposal] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+    const { writeContract, data: txData, error: writeError, reset } = useWriteContract();
+     const txHash = typeof txData === 'object' && txData !== null && 'hash' in txData ? (txData as any).hash : undefined;
+      const { } = useWaitForTransactionReceipt({
+        hash: txHash,
+      });
+    const { isConnected } = useAccount()
+  const contractAddress = escrowContractDeployment.FreeLanceDAOEscrow.evmAddress;
+  const contractAbi = escrowContractABI.abi;
+const HEDERA_TESTNET_CHAIN_ID = 296;
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 12,
@@ -216,6 +231,19 @@ export default function JobsPage() {
       setIsLoading(false)
     }
   }
+  
+    useWatchContractEvent({
+      address: contractAddress as `0x${string}`,
+      abi: contractAbi,
+      eventName: "ProviderRequested",
+      chainId: HEDERA_TESTNET_CHAIN_ID,
+      onLogs: async(logs: any[]) => {
+        if (logs && logs.length > 0) {
+          console.log("request came", logs)
+        }
+      },
+    });
+  
 
   useEffect(() => {
     fetchJobs()
@@ -227,6 +255,13 @@ export default function JobsPage() {
     fetchStats()
     fetchUserProposals()
   }, [])
+
+  useEffect(() => {
+      if (writeError) {
+        toast.error(writeError.message || "error creating job");
+        console.error("error:", writeError);
+      }
+    }, [writeError])
   
   // Fetch user proposals when user changes
   useEffect(() => {
@@ -268,6 +303,25 @@ export default function JobsPage() {
     setSavedJobs(newSavedJobs)
   }
 
+async function requestJob(jobId: number | string) {
+  if (!window.ethereum) throw new Error("Wallet not found");
+
+  const provider = new ethers.providers.Web3Provider(window.ethereum);
+  await provider.send("eth_requestAccounts", []);
+
+  const signer = provider.getSigner();
+  const contract = new ethers.Contract(
+    contractAddress,
+    contractAbi,
+    signer
+  );
+
+  const tx = await contract.requestJob(BigInt(jobId),{ gasLimit: 300000 });
+  const receipt = await tx.wait();
+
+  return receipt;
+}
+
   const submitProposal = async () => {
     if (!selectedJob || !proposalText || !proposalBudget) {
       toast.error("Please fill in all required fields")
@@ -287,32 +341,36 @@ export default function JobsPage() {
         toast.error('Please log in to submit a proposal')
         return
       }
-
-      const response = await fetch('/api/proposals', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          jobId: selectedJob._id,
-          title: `Proposal for ${selectedJob.title}`,
-          description: proposalText,
-          budget: {
-            amount: parseFloat(proposalBudget),
-            currency: selectedJob.budget.currency
-          },
-          timeline: proposalTimeline || 'As discussed',
-          milestones: []
-        })
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || 'Failed to submit proposal')
+        const params={
+        jobId:selectedJob.jobId
       }
+        requestJob(params.jobId);
+      // const response = await fetch('/api/proposals', {
+      //   method: 'POST',
+      //   headers: {
+      //     'Authorization': `Bearer ${token}`,
+      //     'Content-Type': 'application/json'
+      //   },
+      //   body: JSON.stringify({
+      //     jobId: selectedJob._id,
+      //     title: `Proposal for ${selectedJob.title}`,
+      //     description: proposalText,
+      //     budget: {
+      //       amount: parseFloat(proposalBudget),
+      //       currency: selectedJob.budget.currency
+      //     },
+      //     timeline: proposalTimeline || 'As discussed',
+      //     milestones: []
+      //   })
+      // })
 
-      const data = await response.json()
+      // if (!response.ok) {
+      //   const errorData = await response.json()
+      //   throw new Error(errorData.message || 'Failed to submit proposal')
+      // }
+
+      // const data = await response.json()
+    
       toast.success("Proposal submitted successfully!")
       
       // Add job to submitted proposals

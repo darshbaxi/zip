@@ -103,7 +103,7 @@ export function TopNavigation() {
 		{ href: "/", label: "Home", icon: Home },
 		{ href: "/jobs", label: "Browse Jobs", icon: Search },
 		{ href: "/freelancers", label: "Find Talent", icon: Users },
-		{ href: "/ai-agents", label: "AI Agents", icon: Bot },
+		// { href: "/ai-agents", label: "AI Agents", icon: Bot },
 		{
 			href: "/dao",
 			label: "DAO",
@@ -124,7 +124,7 @@ export function TopNavigation() {
 		{ href: "/dashboard", label: "Dashboard", icon: Briefcase },
 		{ href: "/messages", label: "Messages", icon: MessageSquare, badge: 3 },
 		{ href: "/reputation", label: "Reputation", icon: Star },
-		{ href: "/ai-agents", label: "AI Agents", icon: Bot },
+		// { href: "/ai-agents", label: "AI Agents", icon: Bot },
 		{
 			href: "/dao",
 			label: "DAO",
@@ -145,7 +145,7 @@ export function TopNavigation() {
 		{ href: "/dashboard", label: "Dashboard", icon: Briefcase },
 		{ href: "/projects", label: "My Projects", icon: FolderOpen },
 		{ href: "/messages", label: "Messages", icon: MessageSquare, badge: 2 },
-		{ href: "/ai-agents", label: "AI Agents", icon: Bot },
+		// { href: "/ai-agents", label: "AI Agents", icon: Bot },
 		{
 			href: "/dao",
 			label: "DAO",
@@ -491,7 +491,7 @@ export function TopNavigation() {
 														Reputation
 													</Link>
 												</DropdownMenuItem>
-												<DropdownMenuItem asChild>
+												{/* <DropdownMenuItem asChild>
 													<Link
 														href="/ai-agents/dashboard"
 														className="flex items-center"
@@ -499,7 +499,7 @@ export function TopNavigation() {
 														<Bot className="w-4 h-4 mr-3" />
 														AI Dashboard
 													</Link>
-												</DropdownMenuItem>
+												</DropdownMenuItem> */}
 											</>
 										)}
 										<DropdownMenuItem asChild>
@@ -778,7 +778,7 @@ export function BottomNavigation() {
 		{ href: "/", label: "Home", icon: Home },
 		{ href: "/jobs", label: "Jobs", icon: Search },
 		{ href: "/freelancers", label: "Talent", icon: Users },
-		{ href: "/ai-agents", label: "AI", icon: Bot },
+		// { href: "/ai-agents", label: "AI", icon: Bot },
 		{ href: "/auth/signin/freelancer", label: "Sign In", icon: User },
 	];
 
@@ -788,7 +788,7 @@ export function BottomNavigation() {
 		{ href: "/jobs", label: "Find Work", icon: Search },
 		{ href: "/dashboard", label: "Dashboard", icon: Briefcase },
 		{ href: "/messages", label: "Messages", icon: MessageSquare, badge: 3 },
-		{ href: "/ai-agents", label: "AI", icon: Bot },
+		// { href: "/ai-agents", label: "AI", icon: Bot },
 	];
 
 	// Bottom navigation for clients
@@ -797,7 +797,7 @@ export function BottomNavigation() {
 		{ href: "/post-job", label: "Post Job", icon: Plus },
 		{ href: "/dashboard", label: "Dashboard", icon: Briefcase },
 		{ href: "/messages", label: "Messages", icon: MessageSquare, badge: 2 },
-		{ href: "/ai-agents", label: "AI", icon: Bot },
+		// { href: "/ai-agents", label: "AI", icon: Bot },
 	];
 
 	const getBottomNavItems = () => {
