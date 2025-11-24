@@ -34,7 +34,9 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     }
     
     const { action } = await request.json();
-    const proposalId = params.id;
+    const resolvedParams = await params;
+    const proposalId = resolvedParams.id;
+    console.log(action + " hello " + proposalId)
     
     // Validate action
     if (!['accepted', 'rejected'].includes(action)) {
@@ -104,29 +106,29 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       });
       
       // Send notifications
-      try {
-        // Notify accepted freelancer
-        await NotificationService.notifyProposalAccepted(
-          proposal.freelancer._id.toString(),
-          client.fullname,
-          proposal.job.title,
-          proposal._id.toString(),
-          '' // Contract ID will be added when contract is created
-        );
+      // try {
+      //   // Notify accepted freelancer
+      //   await NotificationService.notifyProposalAccepted(
+      //     proposal.freelancer._id.toString(),
+      //     client.fullname,
+      //     proposal.job.title,
+      //     proposal._id.toString(),
+      //     '' // Contract ID will be added when contract is created
+      //   );
         
-        // Notify rejected freelancers
-        const rejectedFreelancerIds = otherProposals.map(p => p.freelancer._id.toString());
-        if (rejectedFreelancerIds.length > 0) {
-          await NotificationService.notifyRejectedProposals(
-            rejectedFreelancerIds,
-            client.fullname,
-            proposal.job.title
-          );
-        }
-      } catch (notificationError) {
-        console.error('Failed to send proposal response notifications:', notificationError);
-        // Don't fail the main operation if notification fails
-      }
+      //   // Notify rejected freelancers
+      //   const rejectedFreelancerIds = otherProposals.map(p => p.freelancer._id.toString());
+      //   if (rejectedFreelancerIds.length > 0) {
+      //     await NotificationService.notifyRejectedProposals(
+      //       rejectedFreelancerIds,
+      //       client.fullname,
+      //       proposal.job.title
+      //     );
+      //   }
+      // } catch (notificationError) {
+      //   console.error('Failed to send proposal response notifications:', notificationError);
+      //   // Don't fail the main operation if notification fails
+      // }
     } else if (action === 'rejected') {
       // Send rejection notification
       try {

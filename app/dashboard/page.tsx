@@ -460,7 +460,7 @@ async function confirmFixedJob(jobId: ethers.BigNumberish) {
         toast.success('Proposal accepted and contract created!');
         
         // Redirect to contract page
-        window.location.href = `/contracts/${contractData.contractId}`;
+        // window.location.href = `/contracts/${contractData.contractId}`;
         return;
       }
       
